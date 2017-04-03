@@ -1,4 +1,4 @@
-defmodule FBUTest do
+defmodule MBUTest do
   use ExUnit.Case
 
   # Dependency functions to call in tasks
@@ -11,7 +11,7 @@ defmodule FBUTest do
 
   test "that a module using the task macro has a run function that takes one argument" do
     defmodule Mix.Task.Foo1 do
-      use FBU.BuildTask
+      use MBU.BuildTask
 
       task args do
         assert args == [1]
@@ -23,7 +23,7 @@ defmodule FBUTest do
 
   test "that the macro works when given _ to denote ignored args" do
     defmodule Mix.Task.Foo2 do
-      use FBU.BuildTask
+      use MBU.BuildTask
 
       task _ do
         :ok
@@ -35,7 +35,7 @@ defmodule FBUTest do
 
   test "that deps are run before the task" do
     defmodule Mix.Task.Foo3 do
-      use FBU.BuildTask
+      use MBU.BuildTask
 
       @deps [
         &Depfuns.foo/0,
@@ -56,7 +56,7 @@ defmodule FBUTest do
 
   test "that deps are not run if deps: false is given" do
     defmodule Mix.Task.Foo4 do
-      use FBU.BuildTask
+      use MBU.BuildTask
 
       @deps [
         &Depfuns.foo_no/0,

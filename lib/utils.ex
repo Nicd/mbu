@@ -1,4 +1,4 @@
-defmodule FBU.TaskUtils do
+defmodule MBU.TaskUtils do
   @moduledoc """
   Utilities for project build tasks.
   """
@@ -8,6 +8,10 @@ defmodule FBU.TaskUtils do
   @elixir System.find_executable("elixir")
 
   @default_task_timeout 60000
+  @watch_combine_time 200
+
+  @typep task_name :: String.t | module
+  @typep task_list :: [task_name | fun | {task_name, [...]}]
 
   defmodule ProgramSpec do
     @moduledoc """
@@ -25,36 +29,32 @@ defmodule FBU.TaskUtils do
     Watch specification, target to watch and callback to execute on events.
     Name is used for prefixing logs.
 
-    Callback must have arity 2, gets filename/path and list of events as arguments.
+    Callback must have arity 1, gets list of 2-tuples representing change events,
+    each containing path to changed file and list of events that occurred.
     """
     defstruct [
       name: "",
       path: "",
       callback: nil,
       pid: nil,
-      name_atom: nil
+      name_atom: nil,
+      events: [],
+      waiting_to_trigger: false
     ]
   end
 
-  @doc """
-  Get configuration value.
+  @typedoc """
+  A watch specification or program specification that is used internally to keep
+  track of running programs and watches.
   """
-  def conf(key) when is_atom(key) do
-    Application.get_env(:code_stats, key)
-  end
-
-  @doc """
-  Get absolute path to a program in $PATH.
-  """
-  def exec_path(program) do
-    System.find_executable(program)
-  end
+  @type buildspec :: %WatchSpec{} | %ProgramSpec{}
 
   @doc """
   Run the given Mix task and wait for it to stop before returning.
 
   See run_tasks/2 for the argument description.
   """
+  @spec run_task(task_name, [...]) :: any
   def run_task(task, args \\ []) do
     run_tasks([{task, args}])
   end
@@ -69,8 +69,12 @@ defmodule FBU.TaskUtils do
   * `task_name`, where `task_name` is a Mix task name or module to call without
     arguments, or
   * `task_function` where `task_function` is a function to call without arguments.
+
+  Arguments should be keyword lists. If an argument `deps: false` is given to a task
+  that is an `MBU.BuildTask`, its dependencies will not be executed.
   """
-  def run_tasks(tasks) do
+  @spec run_tasks(task_list) :: any
+  def run_tasks(tasks) when is_list(tasks) do
     tasks
 
     |> Enum.map(fn
@@ -114,7 +118,11 @@ defmodule FBU.TaskUtils do
 
   Functions can either be anonymous functions or tuples of
   {module, fun, args}.
+
+  Can be given optional timeout, how long to wait for the execution of a task.
+  By default it's 60 seconds.
   """
+  @spec run_funs([fun | {module, fun, [...]}], integer) :: any
   def run_funs(funs, timeout \\ @default_task_timeout) when is_list(funs) do
     funs
     |> Enum.map(fn
@@ -141,6 +149,7 @@ defmodule FBU.TaskUtils do
 
   Returns ProgramSpec for the started program.
   """
+  @spec exec(String.t, list, list) :: %ProgramSpec{}
   def exec(executable, args, opts \\ []) do
     name = Keyword.get(
       opts,
@@ -174,11 +183,33 @@ defmodule FBU.TaskUtils do
   @doc """
   Start watching a path. Name is used for prefixing logs.
 
-  Path can point to a file or a directory in which case all subdirs will be watched.
+  Path must point to a directory. All subdirs will be watched automatically.
+
+  The callback function is called whenever changes occur in the watched directory. It
+  will receive a list of 2-tuples, each tuple describing one change. Each tuple has
+  two elements: path to the changed file and a list of change events for that file
+  (returned from `:fs`).
+
+  Instead of a callback function, you can also give a module name of an `MBU.BuildTask`.
+  In that case, the specified task will be called without arguments and with `deps: false`.
+
+  Watch events are combined so that all events occurring in ~200 milliseconds are
+  sent in the same call. This is to avoid running the watch callback many times
+  when a bunch of files change.
+
+  **NOTE:** Never add multiple watches to the same path, or you may end up with
+  unexpected issues!
 
   Returns a WatchSpec.
   """
-  def watch(name, path, fun) do
+  @spec watch(String.t, String.t, ([{String.t, [atom]}] -> any)) | module :: %WatchSpec{}
+  def watch(name, path, fun_or_mod)
+
+  def watch(name, path, fun_or_mod) when is_atom(fun_or_mod), do
+    watch(name, path, fn _ -> run_task(fun_or_mod, deps: false) end)
+  end
+
+  def watch(name, path, fun_or_mod) when is_function(fun_or_mod) do
     name_atom = String.to_atom(name)
     {:ok, pid} = :fs.start_link(name_atom, String.to_charlist(path))
     :fs.subscribe(name_atom)
@@ -188,18 +219,19 @@ defmodule FBU.TaskUtils do
     %WatchSpec{
       name: name,
       path: path,
-      callback: fun,
+      callback: fun_or_mod,
       pid: pid,
       name_atom: name_atom
     }
   end
 
   @doc """
-  Listen to messages from specs and print them to the screen.
+  Listen to messages from the given specs and print them to the screen.
 
   If watch: true is given in the options, will listen for user's enter key and
-  kill programs if enter is pressed.
+  kill programs/watches if enter is pressed.
   """
+  @spec listen(buildspec | [buildspec], list) :: any
   def listen(specs, opts \\ [])
 
   # If there are no specs, stop running
@@ -274,14 +306,21 @@ defmodule FBU.TaskUtils do
       # FS watch sent file event
       {_, {:fs, :file_event}, {file, events}} ->
         handle_events(specs, file, events)
+
+      # A watch was triggered after the timeout
+      {:trigger_watch, path} ->
+        handle_watch_trigger(specs, path)
     end
 
     listen(specs, Keyword.put(opts, :task, task))
   end
 
   @doc """
-  Kill a running program returned by exec().
+  Kill a running program or watch.
   """
+  @spec kill(buildspec) :: any
+  def kill(spec)
+
   def kill(%ProgramSpec{name: name, port: port}) do
     if name != nil do
       Logger.debug("[Killing] #{name}")
@@ -290,9 +329,6 @@ defmodule FBU.TaskUtils do
     send(port, {self(), :close})
   end
 
-  @doc """
-  Kill a running watch.
-  """
   def kill(%WatchSpec{name: name, pid: pid}) do
     Logger.debug("[Killing] #{name}")
     Process.exit(pid, :kill)
@@ -304,6 +340,7 @@ defmodule FBU.TaskUtils do
   If old file is given as second argument, print the old file's size
   and the diff also.
   """
+  @spec print_size(String.t, String.t) :: any
   def print_size(new_file, old_file \\ nil) do
     new_size = get_size(new_file)
 
@@ -321,6 +358,14 @@ defmodule FBU.TaskUtils do
     Logger.debug("#{Path.basename(new_file)}: #{prefix}#{human_size(new_size)}.#{postfix}")
   end
 
+  @doc """
+  Wait for user's enter key and send a message `:user_input_received` to the given
+  target process when enter was pressed.
+
+  This is exposed due to internal code structure and is not really useful to call
+  yourself.
+  """
+  @spec wait_for_input(pid) :: any
   def wait_for_input(target) do
     IO.gets("")
     send(target, :user_input_received)
@@ -371,7 +416,7 @@ defmodule FBU.TaskUtils do
       %WatchSpec{path: watch_path} ->
         # If given path is relative to (under) the watch path or is the same
         # path completely, it's a match.
-        path != watch_path and Path.relative_to(path, watch_path) != path
+        path == watch_path or Path.relative_to(path, watch_path) != path
     end
   end
 
@@ -392,16 +437,38 @@ defmodule FBU.TaskUtils do
   defp handle_events(specs, file, events) do
     file = to_string(file)
     case Enum.find(specs, watch_checker(file)) do
-      %WatchSpec{name: name, callback: callback} ->
-        Logger.debug("[#{name}] Changed #{inspect(events)}: #{file}")
+      %WatchSpec{path: path, waiting_to_trigger: waiting} = spec ->
+        # Add to spec's events and start waiting to trigger events if not already
+        # waiting
+        specs = Enum.reject(specs, watch_checker(path))
+        spec_events = [spec.events | [{file, events}]]
 
-        callback.(file, events)
+        if not waiting do
+          Process.send_after(self(), {:trigger_watch, path}, @watch_combine_time)
+        end
+
+        [specs | [%{spec | events: spec_events, waiting_to_trigger: true}]]
 
       nil ->
         # Watch was maybe removed for some reason
-        Logger.debug("[Error] Watch sent event but path was not in specs list: #{inspect(events)} #{file}")
+        Logger.error("[Error] Watch sent event but path was not in specs list: #{inspect(events)} #{file}")
+        specs
     end
+  end
 
-    specs
+  defp handle_watch_trigger(specs, path) do
+    case Enum.find(specs, watch_checker(path)) do
+      %WatchSpec{name: name, callback: callback, events: events} = spec ->
+        Logger.debug("[#{name}] Changed: #{inspect(events)}")
+
+        callback.(events)
+
+        specs = Enum.reject(specs, watch_checker(path))
+        [specs | [%{spec | events: [], waiting_to_trigger: false}]]
+
+      nil ->
+        Logger.error("[Error] Watch triggered but did not exist anymore: #{inspect(path)}")
+        specs
+    end
   end
 end

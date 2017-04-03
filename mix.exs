@@ -1,10 +1,18 @@
-defmodule FBU.Mixfile do
+defmodule MBU.Mixfile do
   use Mix.Project
 
   def project do
-    [app: :fbu,
-     version: "0.1.0",
+    [app: :mbu,
+     version: "0.2.0",
      elixir: "~> 1.4",
+     name: "MBU: Mix Build Utilities",
+     source_url: "https://github.com/Nicd/mbu",
+     docs: [
+       main: "readme",
+       extras: ["README.md"]
+     ],
+
+
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
      deps: deps()]

@@ -10,11 +10,11 @@ use Mix.Config
 
 # You can configure for your application as:
 #
-#     config :fbu, key: :value
+#     config :mbu, key: :value
 #
 # And access this configuration in your application as:
 #
-#     Application.get_env(:fbu, :key)
+#     Application.get_env(:mbu, :key)
 #
 # Or configure a 3rd-party app:
 #

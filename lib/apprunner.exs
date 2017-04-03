@@ -1,4 +1,4 @@
-defmodule FBU.AppRunner do
+defmodule MBU.AppRunner do
   @moduledoc """
   AppRunner is a script for ensuring that external apps are terminated
   properly when executed from BEAM.
@@ -76,11 +76,11 @@ defmodule FBU.AppRunner do
 end
 
 [program | args] = System.argv()
-port = FBU.AppRunner.exec(program, args)
+port = MBU.AppRunner.exec(program, args)
 
 Task.async(fn ->
-  FBU.AppRunner.wait_for_eof()
+  MBU.AppRunner.wait_for_eof()
   :eof_received
 end)
 
-FBU.AppRunner.wait_loop(port)
+MBU.AppRunner.wait_loop(port)
