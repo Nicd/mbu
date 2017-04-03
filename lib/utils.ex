@@ -202,10 +202,10 @@ defmodule MBU.TaskUtils do
 
   Returns a WatchSpec.
   """
-  @spec watch(String.t, String.t, ([{String.t, [atom]}] -> any)) | module :: %WatchSpec{}
+  @spec watch(String.t, String.t, ([{String.t, [atom]}] -> any) | module) :: %WatchSpec{}
   def watch(name, path, fun_or_mod)
 
-  def watch(name, path, fun_or_mod) when is_atom(fun_or_mod), do
+  def watch(name, path, fun_or_mod) when is_atom(fun_or_mod) do
     watch(name, path, fn _ -> run_task(fun_or_mod, deps: false) end)
   end
 
