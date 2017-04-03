@@ -440,14 +440,14 @@ defmodule MBU.TaskUtils do
       %WatchSpec{path: path, waiting_to_trigger: waiting} = spec ->
         # Add to spec's events and start waiting to trigger events if not already
         # waiting
-        specs = Enum.reject(specs, watch_checker(path))
-        spec_events = [spec.events | [{file, events}]]
+        spec_events = [{file, events} | spec.events]
 
         if not waiting do
           Process.send_after(self(), {:trigger_watch, path}, @watch_combine_time)
         end
 
-        [specs | [%{spec | events: spec_events, waiting_to_trigger: true}]]
+        specs = Enum.reject(specs, watch_checker(path))
+        [%{spec | events: spec_events, waiting_to_trigger: true} | specs]
 
       nil ->
         # Watch was maybe removed for some reason
@@ -464,7 +464,7 @@ defmodule MBU.TaskUtils do
         callback.(events)
 
         specs = Enum.reject(specs, watch_checker(path))
-        [specs | [%{spec | events: [], waiting_to_trigger: false}]]
+        [%{spec | events: [], waiting_to_trigger: false} | specs]
 
       nil ->
         Logger.error("[Error] Watch triggered but did not exist anymore: #{inspect(path)}")

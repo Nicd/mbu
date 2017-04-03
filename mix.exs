@@ -3,7 +3,7 @@ defmodule MBU.Mixfile do
 
   def project do
     [app: :mbu,
-     version: "0.2.0",
+     version: "0.2.1",
      elixir: "~> 1.4",
      name: "MBU: Mix Build Utilities",
      source_url: "https://github.com/Nicd/mbu",
