@@ -3,15 +3,20 @@ defmodule MBU.Mixfile do
 
   def project do
     [app: :mbu,
-     version: "0.2.1",
+     version: "0.2.2",
      elixir: "~> 1.4",
      name: "MBU: Mix Build Utilities",
      source_url: "https://github.com/Nicd/mbu",
+     maintainers: ["Mikko Ahlroth <mikko.ahlroth@gmail.com>"],
+     licenses: ["BSD 3-clause"],
+     links: %{
+       "GitHub" => "https://github.com/Nicd/mbu",
+       "Docs" => "https://hexdocs.pm/mbu"
+     },
      docs: [
        main: "readme",
        extras: ["README.md"]
      ],
-
 
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -24,6 +29,14 @@ defmodule MBU.Mixfile do
   def application do
     # Specify extra applications you'll use from Erlang/Elixir
     [extra_applications: [:logger]]
+  end
+
+  defp description do
+    """
+    MBU is a collection of build utilities for Mix to make it easier to build your project,
+    for example building the front end. It supports task dependencies and watching
+    directories.
+    """
   end
 
   # Dependencies can be Hex packages:
