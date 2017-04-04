@@ -3,21 +3,16 @@ defmodule MBU.Mixfile do
 
   def project do
     [app: :mbu,
-     version: "0.2.3",
+     version: "0.2.4",
      elixir: "~> 1.4",
      name: "MBU: Mix Build Utilities",
      source_url: "https://github.com/Nicd/mbu",
-     maintainers: ["Mikko Ahlroth <mikko.ahlroth@gmail.com>"],
-     licenses: ["BSD 3-clause"],
-     links: %{
-       "GitHub" => "https://github.com/Nicd/mbu",
-       "Docs" => "https://hexdocs.pm/mbu"
-     },
      docs: [
        main: "readme",
        extras: ["README.md"]
      ],
      description: description(),
+     package: package(),
 
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
@@ -30,6 +25,18 @@ defmodule MBU.Mixfile do
   def application do
     # Specify extra applications you'll use from Erlang/Elixir
     [extra_applications: [:logger]]
+  end
+
+  defp package do
+    [
+      name: :mbu,
+      maintainers: ["Mikko Ahlroth <mikko.ahlroth@gmail.com>"],
+      licenses: ["BSD 3-clause"],
+      links: %{
+        "GitHub" => "https://github.com/Nicd/mbu",
+        "Docs" => "https://hexdocs.pm/mbu"
+      }
+    ]
   end
 
   defp description do
