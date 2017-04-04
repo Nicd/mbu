@@ -3,7 +3,7 @@ defmodule MBU.Mixfile do
 
   def project do
     [app: :mbu,
-     version: "0.2.2",
+     version: "0.2.3",
      elixir: "~> 1.4",
      name: "MBU: Mix Build Utilities",
      source_url: "https://github.com/Nicd/mbu",
@@ -17,6 +17,7 @@ defmodule MBU.Mixfile do
        main: "readme",
        extras: ["README.md"]
      ],
+     description: description(),
 
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
