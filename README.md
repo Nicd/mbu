@@ -1,5 +1,9 @@
 # MBU: Mix Build Utilities
 
+**Hex.pm:** [hex.pm/packages/mbu](https://hex.pm/packages/mbu)
+
+**Hexdocs:** [hexdocs.pm/mbu](https://hexdocs.pm/mbu)
+
 _MBU_ is a collection of utility functions and scripts to turn Mix into a build tool
 like Make. Sort of. With it, you can write tasks that build parts of your system,
 be it front end or back end, without having to leave the safety of Elixir.
