@@ -296,8 +296,8 @@ defmodule MBU.TaskUtils do
       # Program closed with error status
       {port, {:exit_status, status}} ->
         program = Enum.find(specs, program_checker(port))
-        Logger.error("Program #{program.name} returned status #{status}.")
-        raise "Failed status #{status} from #{program.name}!"
+        Logger.error("[Error] Program #{program.name} returned status #{status}.")
+        handle_closed(specs, port)
 
       # Port crashed
       {:EXIT, port, _} ->
@@ -428,8 +428,8 @@ defmodule MBU.TaskUtils do
         specs
         |> Enum.reject(program_checker(port))
 
-      nil ->
-        # Program was already removed
+      _ ->
+        # Program was already removed or was a watch that shouldn't be killed
         specs
     end
   end
