@@ -28,3 +28,7 @@ use Mix.Config
 # here (which is why it is important to import them last).
 #
 #     import_config "#{Mix.env}.exs"
+
+config :fs,
+  # Prevent fs from watching the directory it is started from by default
+  backwards_compatible: false

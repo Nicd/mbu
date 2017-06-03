@@ -59,7 +59,7 @@ defmodule MBU.Mixfile do
   defp deps do
     [
       {:ex_doc, "~> 0.15.0", only: :dev},
-      {:fs, "~> 2.12.0"}
+      {:fs, "~> 3.4.0"}
     ]
   end
 end
