@@ -21,15 +21,7 @@ defmodule MBU.AppRunner do
   end
 
   def exec(program, args) do
-    Port.open(
-      {:spawn_executable, program},
-      [
-        :exit_status,
-        :stderr_to_stdout, # Redirect stderr to stdout to log properly
-        args: args,
-        line: 1024
-      ]
-    )
+    os_exec(program, args, :os.type())
   end
 
   def get_pid(port) do
@@ -72,6 +64,42 @@ defmodule MBU.AppRunner do
     end
 
     wait_loop(port)
+  end
+
+  # Execute program based on OS
+  defp os_exec(program, args, {:win32, _}) do
+    # On Windows we cannot spawn batch scripts so we actually run
+    # cmd.exe /c c:/path/to/script.cmd args
+    real_args = ["/c", program | args]
+
+    Port.open(
+      {:spawn_executable, System.find_executable("cmd")},
+      [
+        :exit_status,
+        :stderr_to_stdout, # Redirect stderr to stdout to log properly
+
+        # This is a Windows specific flag for :os.open_port that hides the
+        # opened command window. It prevents the window from flashing on the
+        # screen and also redirects stdout properly. Without this flag, stdout
+        # is not passed back to BEAM and cannot be logged.
+        :hide,
+        
+        args: real_args,
+        line: 1024
+      ]
+    )
+  end
+
+  defp os_exec(program, args, _) do
+    Port.open(
+      {:spawn_executable, program},
+      [
+        :exit_status,
+        :stderr_to_stdout, # Redirect stderr to stdout to log properly
+        args: args,
+        line: 1024
+      ]
+    )
   end
 end
 
