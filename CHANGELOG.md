@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is roughly based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.0.0] - 2017-06-03
+
+### Changed
+
+- Bumped _fs_ version to 3.4.0.
+
+### Fixed
+
+- Should now work on Windows, uses _cmd.exe_ to run _npm_'s batch scripts.
+
+### Fixed
+
 ## [0.3.0] - 2017-04-30
 
 ### Added
