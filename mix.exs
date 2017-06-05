@@ -58,7 +58,7 @@ defmodule MBU.Mixfile do
   # Type "mix help deps" for more examples and options
   defp deps do
     [
-      {:ex_doc, "~> 0.15.0", only: :dev},
+      {:ex_doc, "~> 0.16.0", only: :dev},
       {:fs, "~> 3.4.0"}
     ]
   end
