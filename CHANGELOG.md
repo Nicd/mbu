@@ -4,7 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is roughly based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
-## [1.0.0] - 2017-06-03
+## [1.0.1] - 2017-06-06
+
+### Changed
+
+- Reverted _fs_ version back to 2.12.0 because of compilation issues.
+
+## [1.0.0] - 2017-06-03 (Unreleased)
 
 ### Changed
 
