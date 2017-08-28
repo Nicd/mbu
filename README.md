@@ -87,7 +87,7 @@ by adding `mbu` to your list of dependencies in `mix.exs`:
 
 ```elixir
 def deps do
-  [{:mbu, "~> 1.0.1"}]
+  [{:mbu, "~> 2.0.0"}]
 end
 ```
 

@@ -1,15 +1,18 @@
 defmodule MBU.Mixfile do
   use Mix.Project
 
+  @version "2.0.0"
+
   def project do
     [app: :mbu,
-     version: "1.0.1",
+     version: @version,
      elixir: "~> 1.4",
      name: "MBU: Mix Build Utilities",
-     source_url: "https://github.com/Nicd/mbu",
      docs: [
        main: "readme",
-       extras: ["README.md"]
+       extras: ["README.md"],
+       source_ref: @version,
+       source_url: "https://github.com/Nicd/mbu"
      ],
      description: description(),
      package: package(),
@@ -33,8 +36,7 @@ defmodule MBU.Mixfile do
       maintainers: ["Mikko Ahlroth <mikko.ahlroth@gmail.com>"],
       licenses: ["BSD 3-clause"],
       links: %{
-        "GitHub" => "https://github.com/Nicd/mbu",
-        "Docs" => "https://hexdocs.pm/mbu"
+        "GitHub" => "https://github.com/Nicd/mbu"
       }
     ]
   end
@@ -59,7 +61,7 @@ defmodule MBU.Mixfile do
   defp deps do
     [
       {:ex_doc, "~> 0.16.0", only: :dev},
-      {:fs, "~> 2.12.0"}
+      {:file_system, "~> 0.2.0"}
     ]
   end
 end

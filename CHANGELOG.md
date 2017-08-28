@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 The format is roughly based on [Keep a Changelog](http://keepachangelog.com/)
 and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [2.0.0] - 2017-08-21
+
+### Changed
+
+- Switched from _fs_ to [_file\_system_](https://hex.pm/packages/file_system), which
+  should have better support for compiling on different systems.
+
 ## [1.0.1] - 2017-06-06
 
 ### Changed

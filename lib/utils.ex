@@ -211,8 +211,8 @@ defmodule MBU.TaskUtils do
 
   def watch(name, path, fun_or_mod) when is_function(fun_or_mod) do
     name_atom = String.to_atom(name)
-    {:ok, pid} = :fs.start_link(name_atom, String.to_charlist(path))
-    :fs.subscribe(name_atom)
+    {:ok, pid} = FileSystem.start_link(name: name_atom, dirs: [String.to_charlist(path)])
+    FileSystem.subscribe(name_atom)
 
     Logger.debug("[Spawned] Watch #{name}")
 
@@ -304,7 +304,7 @@ defmodule MBU.TaskUtils do
         handle_closed(specs, port)
 
       # FS watch sent file event
-      {_, {:fs, :file_event}, {file, events}} ->
+      {:file_event, _, {file, events}} ->
         handle_events(specs, file, events)
 
       # A watch was triggered after the timeout
