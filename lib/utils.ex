@@ -11,7 +11,7 @@ defmodule MBU.TaskUtils do
   @watch_combine_time 200
 
   @typep task_name :: String.t | module
-  @typep task_list :: [task_name | fun | {task_name, [...]}]
+  @typep task_list :: [task_name | fun | {task_name, list}]
 
   defmodule ProgramSpec do
     @moduledoc """
@@ -54,7 +54,7 @@ defmodule MBU.TaskUtils do
 
   See run_tasks/2 for the argument description.
   """
-  @spec run_task(task_name, [...]) :: any
+  @spec run_task(task_name, list) :: any
   def run_task(task, args \\ []) do
     run_tasks([{task, args}])
   end
@@ -341,10 +341,10 @@ defmodule MBU.TaskUtils do
   and the diff also.
   """
   @spec print_size(String.t, String.t) :: any
-  def print_size(new_file, old_file \\ nil) do
+  def print_size(new_file, old_file \\ "") do
     new_size = get_size(new_file)
 
-    {prefix, postfix} = if old_file != nil do
+    {prefix, postfix} = if old_file != "" do
       old_size = get_size(old_file)
 
       {
